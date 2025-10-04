@@ -1,0 +1,44 @@
+# services.yaml for Meshtastic Tracker integration
+send_packet:
+  name: Send Meshtastic Message
+  description: >
+    Send a plaintext JSON message to a specific node on the Meshtastic network.
+    The message is published to the MQTT topic:
+    "<base_topic>/2/json/mqtt/!<from_node_id>"
+  fields:
+    text:
+      name: Message text
+      description: The text message to send.
+      required: true
+      example: "Hello from Home Assistant!"
+      selector:
+        text:
+    to_id:
+      name: Destination node ID
+      description: >
+        Node ID to send the message to (format: !XXXXXXXX).
+        Use !FFFFFFFF for broadcast.
+      required: true
+      example: "!FFFFFFFF"
+      selector:
+        text:
+    from_id:
+      name: Source node ID
+      description: >
+        Node ID of the sender (format: !XXXXXXXX).
+        This ID determines the MQTT topic suffix.
+      required: true
+      example: "!ABCDEF12"
+      selector:
+        text:
+    channel:
+      name: Channel number
+      description: >
+        Channel index for the outgoing message (0 = default).
+      required: false
+      example: 0
+      selector:
+        number:
+          min: 0
+          max: 7
+          mode: box

@@ -1,0 +1,7 @@
+{
+  "title": "Meshtastic Tracker",
+  "options": {
+    "track_nodes": "Comma-separated node IDs to track",
+    "mqtt_topic": "MQTT topic"
+  }
+}

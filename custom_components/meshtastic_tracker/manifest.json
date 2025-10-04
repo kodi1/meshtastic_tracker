@@ -1,0 +1,17 @@
+{
+  "domain": "meshtastic_tracker",
+  "name": "Meshtastic Tracker",
+  "version": "1.6.1",
+  "documentation": "https://github.com/kodi1/meshtastic_tracker",
+  "requirements": [
+    "protobuf>=3.20.0"
+  ],
+  "dependencies": ["mqtt"],
+  "after_dependencies": ["mqtt"],
+  "codeowners": [
+    "@kodi1",
+    "@openai-chatgpt"
+  ],
+  "platforms": ["sensor", "device_tracker"],
+  "config_flow": true
+}

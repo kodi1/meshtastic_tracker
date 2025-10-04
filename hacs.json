@@ -1,0 +1,8 @@
+{
+  "name": "Meshtastic Tracker",
+  "render_readme": true,
+  "homeassistant": "2023.8.0",
+  "country": "ALL",
+  "domain": "meshtastic_tracker",
+  "iot_class": "local_push"
+}

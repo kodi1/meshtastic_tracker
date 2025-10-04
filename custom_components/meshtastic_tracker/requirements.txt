@@ -1,0 +1,7 @@
+cachetools==6.2.0
+cffi==2.0.0
+cryptography==46.0.2
+paho-mqtt==2.1.0
+protobuf==6.32.1
+pycparser==2.23
+typing_extensions==4.15.0
