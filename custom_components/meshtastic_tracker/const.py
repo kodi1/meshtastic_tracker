@@ -9,6 +9,8 @@ CONF_FRIENDLY_NAME = "friendly_name"
 CONF_BASE_TOPIC = "base_topic"
 CONF_CHANNEL_NAME = "channel_name"
 CONF_DEBOUNCE_MS = "debounce_ms"
+CONF_PDOP_MIN_THRESHOLD = "pdop_min_threshold"
+CONF_PDOP_MAX_THRESHOLD = "pdop_max_threshold"
 
 # Default values
 DEFAULT_BASE_TOPIC = "msh/EU_868"

@@ -10,7 +10,7 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.components import mqtt
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
-from .const import DOMAIN, CONF_FRIENDLY_NAME
+from .const import DOMAIN, CONF_FRIENDLY_NAME, CONF_PDOP_MIN_THRESHOLD, CONF_PDOP_MAX_THRESHOLD
 from . import pb_data
 
 _LOGGER = logging.getLogger(__name__)
@@ -37,6 +37,8 @@ class MeshtasticTrackerCoordinator(DataUpdateCoordinator):
         self.mqtt_topic = base_topic
         self.tracked_nodes = [str(n).strip() for n in (tracked_nodes or []) if n]
         self.friendly_name = friendly_name or "Meshtastic Tracker"
+        self.pdop_min_threshold = float(entry.options.get(CONF_PDOP_MIN_THRESHOLD, 0.5))
+        self.pdop_max_threshold = float(entry.options.get(CONF_PDOP_MAX_THRESHOLD, 8.0))
         self.base_topic = base_topic
         self.channel_name = channel_name
         self.encryption_key = encryption_key

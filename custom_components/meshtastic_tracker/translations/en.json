@@ -2,6 +2,23 @@
   "title": "Meshtastic Tracker",
   "options": {
     "track_nodes": "Comma-separated node IDs to track",
-    "mqtt_topic": "MQTT topic"
+    "mqtt_topic": "MQTT topic",
+    "pdop_min_threshold": "Minimum acceptable PDOP",
+    "pdop_max_threshold": "Maximum acceptable PDOP"
+  },
+  "config": {
+    "error": {
+      "invalid_pdop_range": "Minimum PDOP must be lower than maximum PDOP."
+    },
+    "step": {
+      "user": {
+        "title": "Meshtastic Tracker Configuration",
+        "description": "Configure tracked nodes and MQTT parameters."
+      },
+      "init": {
+        "title": "Meshtastic Tracker Options",
+        "description": "Set PDOP range thresholds to control GPS accuracy filtering."
+      }
+    }
   }
 }

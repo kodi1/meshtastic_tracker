@@ -91,7 +91,7 @@ class MeshtasticDeviceTracker(CoordinatorEntity, TrackerEntity, RestoreEntity):
             "sats_in_view": data.get("sats_in_view"),
             "PDOP": data.get("PDOP"),
             "ground_track": data.get("ground_track"),
-            "gps_accuracy": 111320 * 1e-7 * (2 ** (32 - prec_bits)),
+            "gps_accuracy": 127420 * (180 / (2 ** prec_bits)),
         }
 
     # ------------------------------------------------------------------
@@ -135,18 +135,41 @@ class MeshtasticDeviceTracker(CoordinatorEntity, TrackerEntity, RestoreEntity):
         return self.coordinator.latest.get(self.node_id, {}).get(key)
 
     def _handle_coordinator_update(self):
-        """Handle updated data from the coordinator."""
+        """Handle updated data from the coordinator with PDOP filtering (min/max)."""
         data = self.coordinator.latest.get(self.node_id, {})
         lat = data.get("latitude_i")
         lon = data.get("longitude_i")
+        pdop = data.get("PDOP")
 
         # Convert scaled ints if needed
         if isinstance(lat, int) and isinstance(lon, int):
             lat /= 1e7
             lon /= 1e7
 
-        if lat is not None and lon is not None:
+        # Load thresholds from coordinator (with defaults)
+        pdop_min = getattr(self.coordinator, "pdop_min_threshold", 0.5)
+        pdop_max = getattr(self.coordinator, "pdop_max_threshold", 8.0)
+
+        update_position = True
+        if pdop is not None:
+            try:
+                pdop_val = float(pdop)
+                if pdop_val < pdop_min or pdop_val > pdop_max:
+                    update_position = False
+                    _LOGGER.debug(
+                        "Skipping location update for %s due to PDOP out of range (%.2f not in [%.2f–%.2f])",
+                        self.node_id,
+                        pdop_val,
+                        pdop_min,
+                        pdop_max,
+                    )
+            except (ValueError, TypeError):
+                pass
+
+        # Update lat/lon only if PDOP is acceptable
+        if update_position and lat is not None and lon is not None:
             data[ATTR_LATITUDE] = lat
             data[ATTR_LONGITUDE] = lon
 
+        # Always refresh attributes even if position is skipped
         self.async_write_ha_state()
