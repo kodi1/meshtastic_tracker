@@ -24,25 +24,6 @@ DEFAULT_ENC_KEY = "1PG7OiApB1nwvP+rz05pAQ=="
 
 def _as_position(obj, envelope):
     """Convert Position protobuf message into simplified dict."""
-    # Normalize values and apply scaling where needed
-    ground_track = None
-    if hasattr(obj, "ground_track"):
-        # Some firmware encodes ground_track as millidegrees (° * 1e3)
-        gt = obj.ground_track
-        if gt > 1000:  # likely scaled
-            ground_track = gt / 1000.0
-        else:
-            ground_track = gt
-
-    pdop = None
-    if hasattr(obj, "PDOP"):
-        # PDOP should be a small float, but some firmwares send it *10 or as int
-        val = obj.PDOP
-        if val > 50:  # e.g., 297 → 29.7
-            pdop = val / 10.0
-        else:
-            pdop = val
-
     return (
         "position",
         {
@@ -52,8 +33,8 @@ def _as_position(obj, envelope):
             "ground_speed": getattr(obj, "ground_speed", None),
             "sats_in_view": getattr(obj, "sats_in_view", None),
             "precision_bits": getattr(obj, "precision_bits", None),
-            "ground_track": ground_track,
-            "PDOP": pdop,
+            "ground_track": getattr(obj, "ground_track", None),
+            "PDOP": getattr(obj, "PDOP", None),
         },
     )
 

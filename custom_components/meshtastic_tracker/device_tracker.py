@@ -73,25 +73,59 @@ class MeshtasticDeviceTracker(CoordinatorEntity, TrackerEntity, RestoreEntity):
         """Return the current longitude."""
         return self._get_node_value(ATTR_LONGITUDE)
 
+    # ------------------------------------------------------------------
+
+    def _normalize_pdop(self, raw):
+        """Normalize PDOP to a reasonable float value."""
+        try:
+            val = float(raw)
+        except (TypeError, ValueError):
+            return None
+        # Auto-detect scaling
+        if val >= 1000:
+            val /= 1000.0
+        elif val >= 100:
+            val /= 100.0
+        elif val >= 10:
+            val /= 10.0
+        return round(val, 3)
+
+    def _normalize_ground_track(self, raw):
+        """Normalize ground track from millidegrees to degrees 0–360."""
+        try:
+            deg = float(raw) / 1000.0
+            return round(deg % 360.0, 3)
+        except (TypeError, ValueError):
+            return None
+
+    # ------------------------------------------------------------------
+
     @property
     def extra_state_attributes(self):
-        """Return additional state attributes."""
+        """Return additional state attributes with normalized PDOP and ground track."""
         data = self.coordinator.latest.get(self.node_id, {})
         rx_time = data.get("rx_time")
+
         if isinstance(rx_time, (int, float)):
             dt = datetime.fromtimestamp(rx_time)
             # Example: "October 4, 2025 at 12:34:42"
             rx_time = dt.strftime("%B %-d, %Y at %H:%M:%S")
+
         prec_bits = data.get("precision_bits", 13)
+        gps_accuracy = 127420 * (180 / (2**prec_bits))
+
+        pdop = self._normalize_pdop(data.get("PDOP"))
+        ground_track = self._normalize_ground_track(data.get("ground_track"))
+
         return {
             "sender": data.get("sender"),
             "rx_time": rx_time,
             "altitude": data.get("altitude"),
             "ground_speed": data.get("ground_speed"),
             "sats_in_view": data.get("sats_in_view"),
-            "PDOP": data.get("PDOP"),
-            "ground_track": data.get("ground_track"),
-            "gps_accuracy": 127420 * (180 / (2 ** prec_bits)),
+            "PDOP": pdop,
+            "ground_track": ground_track,
+            "gps_accuracy": gps_accuracy,
         }
 
     # ------------------------------------------------------------------
@@ -139,37 +173,33 @@ class MeshtasticDeviceTracker(CoordinatorEntity, TrackerEntity, RestoreEntity):
         data = self.coordinator.latest.get(self.node_id, {})
         lat = data.get("latitude_i")
         lon = data.get("longitude_i")
-        pdop = data.get("PDOP")
+        pdop_raw = data.get("PDOP")
 
-        # Convert scaled ints if needed
+        # Convert scaled ints for lat/lon
         if isinstance(lat, int) and isinstance(lon, int):
             lat /= 1e7
             lon /= 1e7
 
-        # Load thresholds from coordinator (with defaults)
+        # Normalize PDOP for threshold comparison
+        pdop_val = self._normalize_pdop(pdop_raw)
         pdop_min = getattr(self.coordinator, "pdop_min_threshold", 0.5)
         pdop_max = getattr(self.coordinator, "pdop_max_threshold", 8.0)
 
         update_position = True
-        if pdop is not None:
-            try:
-                pdop_val = float(pdop)
-                if pdop_val < pdop_min or pdop_val > pdop_max:
-                    update_position = False
-                    _LOGGER.debug(
-                        "Skipping location update for %s due to PDOP out of range (%.2f not in [%.2f–%.2f])",
-                        self.node_id,
-                        pdop_val,
-                        pdop_min,
-                        pdop_max,
-                    )
-            except (ValueError, TypeError):
-                pass
+        if pdop_val is not None and (pdop_val < pdop_min or pdop_val > pdop_max):
+            update_position = False
+            _LOGGER.debug(
+                "Skipping location update for %s: PDOP %.2f not in [%.2f–%.2f]",
+                self.node_id,
+                pdop_val,
+                pdop_min,
+                pdop_max,
+            )
 
-        # Update lat/lon only if PDOP is acceptable
+        # Only update coordinates if PDOP is acceptable
         if update_position and lat is not None and lon is not None:
             data[ATTR_LATITUDE] = lat
             data[ATTR_LONGITUDE] = lon
 
-        # Always refresh attributes even if position is skipped
+        # Always refresh attributes even if position skipped
         self.async_write_ha_state()
