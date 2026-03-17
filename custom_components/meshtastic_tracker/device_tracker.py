@@ -12,7 +12,6 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up Meshtastic device trackers based on the coordinator."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
@@ -55,6 +54,7 @@ class MeshtasticDeviceTracker(CoordinatorEntity, TrackerEntity, RestoreEntity):
         )
 
         _LOGGER.debug("Created device tracker for node %s", node_id)
+        _LOGGER.debug("Tracker unique id %s", self._attr_unique_id)
 
     # ------------------------------------------------------------------
 

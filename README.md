@@ -66,18 +66,6 @@ You can install this integration directly through HACS.
 
 ---
 
-## 📦 Dependency Notes
-
-This integration uses a **local copy** of the Meshtastic protobufs and API from  
-[Meshtastic Python v2.7.3](https://github.com/meshtastic/python/releases/tag/2.7.3).
-
-### Why Local Protobufs?
-
-Home Assistant’s internal Python environment often conflicts with the official Meshtastic package, primarily due to differences in `protobuf` and asyncio dependency versions.  
-To prevent runtime import errors or version conflicts, this integration includes its own bundled protobuf definitions and uses them locally.
-
----
-
 ## 💬 Message Sending
 
 Messages are sent and received using the **Meshtastic MQTT/JSON** format.  
@@ -175,7 +163,6 @@ logger:
 ## 🛠️ Credits
 
 - Based on [kvj/hass_Mtastic_MQTT](https://github.com/kvj/hass_Mtastic_MQTT)  
-- Includes local protobufs from [Meshtastic Python 2.7.3](https://github.com/meshtastic/python/releases/tag/2.7.3)  
 - Maintained and expanded for modern Home Assistant environments
 
 ---

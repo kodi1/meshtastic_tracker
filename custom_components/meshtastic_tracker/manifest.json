@@ -4,7 +4,8 @@
   "version": "1.6.4",
   "documentation": "https://github.com/kodi1/meshtastic_tracker",
   "requirements": [
-    "protobuf>=3.20.0"
+    "protobuf>=3.20.0",
+    "meshtastic>=2.7.8"
   ],
   "dependencies": ["mqtt"],
   "after_dependencies": ["mqtt"],

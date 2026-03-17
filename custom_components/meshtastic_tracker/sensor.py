@@ -1,4 +1,5 @@
 from __future__ import annotations
+import logging
 from typing import Any
 from datetime import datetime
 
@@ -11,6 +12,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import DOMAIN, ATTR_BATTERY_VOLTAGE
+
+_LOGGER = logging.getLogger(__name__)
 
 # Each sensor: key, name, device_class, unit, state_class
 SENSOR_DEFS = [
@@ -108,6 +111,8 @@ class MeshtasticNodeSensor(CoordinatorEntity, RestoreEntity, SensorEntity):
             self._attr_suggested_display_precision = 1
         else:
             self._attr_suggested_display_precision = None
+
+        _LOGGER.debug("Sensor unique id %s", self._attr_unique_id)
 
     @property
     def native_value(self) -> Any | None:

@@ -13,13 +13,8 @@ import sys
 import json
 from pathlib import Path
 
-# Ensure local meshtastic protobufs are importable
-local_meshtastic_path = Path(__file__).parent / "meshtastic"
-if local_meshtastic_path.exists():
-    sys.path.insert(0, str(local_meshtastic_path.parent))
-
 import meshtastic.protobuf.mqtt_pb2 as mqtt_pb2
-from proto import (
+from .proto import (
     convert_envelope_to_json,
     try_encrypt_envelope,
     build_encrypted_envelope,
@@ -45,11 +40,15 @@ seen_ids = TTLCache(maxsize=100, ttl=10)  # deduplication
 # ----------------------------------------------------------------------------
 
 
-def packet_receive(msg, key: str):
+def packet_receive(msg, key: str = None):
     """
     Parse an incoming MQTT message containing a protobuf ServiceEnvelope.
     Deduplicates, decrypts, and converts to JSON.
     """
+
+    if key is None:
+        key = "AQ=="
+
     try:
         env = mqtt_pb2.ServiceEnvelope()
         env.ParseFromString(msg)

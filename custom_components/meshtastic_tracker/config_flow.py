@@ -102,34 +102,30 @@ class MeshtasticConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def async_get_options_flow(config_entry):
         return MeshtasticOptionsFlowHandler(config_entry)
 
-
 class MeshtasticOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle options for Meshtastic Tracker integration."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry):
         """Initialize options flow."""
-        self.config_entry = config_entry
+        self._config_entry = config_entry  # ⚡ Use _config_entry to avoid property conflict
 
     async def async_step_init(self, user_input=None):
         """Manage the options."""
         errors = {}
 
-        # Handle form submission
         if user_input is not None:
+            # Validate PDOP range
             min_pdop = float(user_input.get(CONF_PDOP_MIN_THRESHOLD, 0.5))
             max_pdop = float(user_input.get(CONF_PDOP_MAX_THRESHOLD, 8.0))
 
             if min_pdop >= max_pdop:
                 errors["base"] = "invalid_pdop_range"
-                _LOGGER.warning(
-                    "Invalid PDOP range entered: min %.2f >= max %.2f", min_pdop, max_pdop
-                )
             else:
-                # ✅ Valid input
+                # ✅ Valid input, save all options
                 return self.async_create_entry(title="", data=user_input)
 
-        # Current saved values or defaults
-        current = self.config_entry.options
+        # Load current options or defaults
+        current = self._config_entry.options
         data_schema = vol.Schema(
             {
                 vol.Optional(
@@ -140,6 +136,10 @@ class MeshtasticOptionsFlowHandler(config_entries.OptionsFlow):
                     CONF_PDOP_MAX_THRESHOLD,
                     default=current.get(CONF_PDOP_MAX_THRESHOLD, 8.0),
                 ): vol.Coerce(float),
+                vol.Optional(
+                    CONF_DEBOUNCE_MS,
+                    default=current.get(CONF_DEBOUNCE_MS, DEFAULT_DEBOUNCE_MS),
+                ): vol.All(vol.Coerce(int), vol.Range(min=10, max=2000)),
             }
         )
 
@@ -150,6 +150,6 @@ class MeshtasticOptionsFlowHandler(config_entries.OptionsFlow):
             description_placeholders={
                 "CONF_PDOP_MIN_THRESHOLD": "Minimum acceptable PDOP value",
                 "CONF_PDOP_MAX_THRESHOLD": "Maximum acceptable PDOP value",
+                "CONF_DEBOUNCE_MS": "Debounce time in milliseconds",
             },
         )
-
