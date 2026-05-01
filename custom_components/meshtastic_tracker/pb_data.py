@@ -89,7 +89,7 @@ def packet_send(
     channel: int,
 ):
     _msg = {
-        'channel': 0,
+        'channel': channel,
         'to': to_id,
         'from': gw_id,
         'type': 'sendtext',
